@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>Socket.IO Chat</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    #status {
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+
+    #chat {
+      border: 1px solid #ccc;
+      min-height: 200px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+
+    #messageInput {
+      width: 70%;
+      padding: 10px;
+    }
+
+    #sendButton {
+      padding: 10px 15px;
+      cursor: pointer;
+    }
+
+    .message {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Simple Socket.IO Chat</h1>
+
+  <!-- Состояние подключения -->
+  <div id="status">
+    Connecting...
+  </div>
+
+  <!-- Здесь будут отображаться сообщения -->
+  <div id="chat"></div>
+
+  <!-- Поле ввода сообщения -->
+  <input
+    id="messageInput"
+    type="text"
+    placeholder="Enter your message"
+  />
+
+  <!-- Кнопка отправки -->
+  <button id="sendButton">
+    Send Message
+  </button>
+
+
+  <!--
+    Socket.IO сам предоставляет клиентскую библиотеку
+    по этому адресу.
+  -->
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script>
+ 
+    // CONNECTION
+    // Подключаемся к Socket.IO серверу
+   
+    const socket = io();
+
+    const status = document.getElementById("status");
+    const chat = document.getElementById("chat");
+    const messageInput =
+      document.getElementById("messageInput");
+    const sendButton =
+      document.getElementById("sendButton");
+
+
+  
+    // CONNECT
+    // Серверное соединение установлено
+  
+    socket.on("connect", () => {
+      status.textContent =
+        `Connected. Socket ID: ${socket.id}`;
+    });
+
+
+
+    // DISCONNECT
+    // Соединение потеряно
+  
+    socket.on("disconnect", () => {
+      status.textContent = "Disconnected";
+    });
+
+
+
+    // SEND MESSAGE
+    // Отправляем сообщение серверу
+
+    function sendMessage() {
+      const message = messageInput.value.trim();
+
+      // Не отправляем пустое сообщение
+      if (!message) {
+        return;
+      }
+
+      // socket.emit()
+      // Отправляет событие chatMessage на сервер
+      socket.emit("chatMessage", message);
+
+      // Показываем отправленное сообщение
+      const item = document.createElement("div");
+      item.className = "message";
+      item.textContent = `You: ${message}`;
+
+      chat.appendChild(item);
+
+      // Очищаем поле
+      messageInput.value = "";
+    }
+
+
+    // Нажатие кнопки Send Message
+    sendButton.addEventListener("click", sendMessage);
+
+
+    // Дополнительно отправляем сообщение по Enter
+    messageInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        sendMessage();
+      }
+    });
+
+
+
+    // MESSAGE RECEIVED
+    // Получаем подтверждение от сервера
+
+    socket.on("messageReceived", (message) => {
+      const item = document.createElement("div");
+
+      item.className = "message";
+      item.textContent = message;
+
+      chat.appendChild(item);
+    });
+  </script>
+
+</body>
+</html>
